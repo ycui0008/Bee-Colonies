@@ -13,13 +13,14 @@ csl: apa.csl
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,
+knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
                       fig.align = 'center',
                       cache = TRUE)
 library(leaflet)
 library(tidyverse)
+library(zoo)
 ```
 
 ```{r data, echo = FALSE, include = FALSE}
@@ -59,9 +60,9 @@ aim of the report:
 
 ## Data description
 
-There are two datasets: `colony.csv` and `stressor.csv`. `colony.csv` has 1222 observations and 10 variables, and `stressor.csv` has 7332 observations and 5 variables.
+There are two datasets: `colony.csv` and `stressor.csv`. `colony.csv` has 1222 observations and 10 variables, and `stressor.csv` has 7332 observations and 5 variables. Both of them contains data from 2015 to 2021.
 
-```{r}
+```{r colony}
 data.frame(
   variable = c(
     "year",
@@ -101,10 +102,77 @@ data.frame(
   )
 ) %>% 
   knitr::kable(caption = "colony.csv data") %>% 
-  kableExtra::kable_styling(full_width = F) %>% 
-   column_spec(3, width = "30em", background = "gray")
+  kableExtra::kable_paper(full_width = F) %>% 
+  kableExtra::column_spec(1, bold = T)
+  
 ```
 
+```{r stressor}
+data.frame(
+  variable = c("year", "months", "state", "stressor", "stress_pct"),
+  type = c("character", "character", "character", "character", "double"),
+  description = c("Year", "Month rage", "State Name (note there is United States and Other States)", "Stress type", "Percent of colonies affected by stressors anytime during the quarter, colony can be affected by multiple stressors during same quarter.")
+) %>% 
+  knitr::kable(caption = "stressor.csv data") %>% 
+  kableExtra::kable_paper(full_width = F) %>% 
+  kableExtra::column_spec(1, bold = T) %>% 
+  kableExtra::column_spec(3, width = "25em")
+
+```
+
+```{r}
+# change month ranges to quarter
+
+colony %>%
+  mutate(
+    quarter = case_when(
+      months == "January-March" ~ "Q1",
+      months == "April-June" ~ "Q2",
+      months == "July-September" ~ "Q3",
+      TRUE ~ "Q4"
+    )
+  ) %>% 
+  select(-months) -> colony_clean
+  
+stressor %>%
+  mutate(
+    quarter = case_when(
+      months == "January-March" ~ "Q1",
+      months == "April-June" ~ "Q2",
+      months == "July-September" ~ "Q3",
+      TRUE ~ "Q4"
+    )
+  ) %>% 
+  select(-months) -> stressor_clean
+```
+
+
+# Analysis
+
+## The Percent of Colonies Affected by Stressors Anytime During the Quarter from 2015 to 2021
+
+```{r stress_pct, caption = "Most common stressors among bee colonies in the US"}
+stressor_clean %>% 
+  filter(state == "United States") %>% 
+  group_by(year, quarter) %>%
+  # mutate(sum_stress_pct = sum(stress_pct, na.rm = TRUE)) %>% 
+  # ungroup() %>% 
+  # group_by(year, sum_stress_pct)
+  # filter(stress_pct == max(stress_pct))
+  mutate(year = paste0(year, "-", quarter),
+         year = as.yearqtr(year, format = "%Y-Q%q")) %>% 
+  ggplot(aes(x = year, y = stress_pct, group = stressor, color = stressor)) +
+  geom_line() +
+  scale_color_manual(values = c(
+    '#1b9e77',
+    '#d95f02',
+    '#7570b3',
+    '#e7298a',
+    '#66a61e',
+    '#e6ab02'
+  )) +
+  theme_minimal()
+```
 
 
 
