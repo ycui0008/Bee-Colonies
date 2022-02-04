@@ -2,18 +2,27 @@
 title: "Bee Colonies"
 author: "Yuheng Cui"
 date: "2/3/2022"
-output: html_document
+output: 
+  bookdown::html_document2:
+    toc: yes
+    toc_float:
+      collapsed: true
+      number_sections: false
+bibliography: references.bib
+csl: apa.csl
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE,
-                      fig.align = 'center')
-
+                      fig.align = 'center',
+                      cache = TRUE)
+library(leaflet)
+library(tidyverse)
 ```
 
-```{r}
+```{r data, echo = FALSE, include = FALSE}
 # Get the Data
 
 # Read in with tidytuesdayR package 
@@ -34,3 +43,69 @@ stressor <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/t
 
 ```
 
+# Introduction
+
+## Background
+
+Honeybees are both biology and economy of importance. Bees' main products, such as royal jelly, honey wax and honey, are popular in the world. Bees are also primary pollinators for plant, particularly those grown for food. A well-known theory said if bees went extinct, there would be world-wide food shortage and people could only survive for four years. Beekeepers' revenue comes from honey products and pollination fees. @ferrier pointed that, in the US, beekeepers' revenue doubled from 1966 to 2016, and 85% of pollination fees from pollinating almond (due to dramatic increase of the number of almond acres). Beekeepers rely on the health and productivity of their bee colonies. 
+
+
+
+	• farmers (pay for pollination fees)
+		○ The growth of almond highly relies on bee pollination
+		○ honey wax, honey, royal jelly
+	• supply chains (costs will increase)
+aim of the report:
+
+## Data description
+
+There are two datasets: `colony.csv` and `stressor.csv`. `colony.csv` has 1222 observations and 10 variables, and `stressor.csv` has 7332 observations and 5 variables.
+
+```{r}
+data.frame(
+  variable = c(
+    "year",
+    "months",
+    "state",
+    "colony_n",
+    "colony_max",
+    "colony_lost",
+    "colony_lost_pct",
+    "colony_added",
+    "colony_reno",
+    "colony_reno_pct"
+  ),
+  type = c(
+    "character",
+    "character",
+    "character",
+    "integer",
+    "integer",
+    "integer",
+    "integer",
+    "integer",
+    "integer",
+    "integer"
+  ),
+  description = c(
+    "year",
+    "months",
+    "State Name (note there is United States and Other States)",
+    "Number of colonies",
+    "Maximum colonies",
+    "Colonies lost",
+    "Percent of total colonies lost",
+    "Colonies added",
+    "Colonies renovated",
+    "Percent of colonies renovated"
+  )
+) %>% 
+  knitr::kable(caption = "colony.csv data") %>% 
+  kableExtra::kable_styling(full_width = F) %>% 
+   column_spec(3, width = "30em", background = "gray")
+```
+
+
+
+
+# References
