@@ -21,6 +21,7 @@ knitr::opts_chunk$set(echo = FALSE,
 library(leaflet)
 library(tidyverse)
 library(zoo)
+library(geomtextpath)
 ```
 
 ```{r data, echo = FALSE, include = FALSE}
@@ -132,6 +133,8 @@ colony %>%
       TRUE ~ "Q4"
     )
   ) %>% 
+  mutate(year = paste0(year, "-", quarter),
+         year = as.yearqtr(year, format = "%Y-Q%q")) %>% 
   select(-months) -> colony_clean
   
 stressor %>%
@@ -143,6 +146,8 @@ stressor %>%
       TRUE ~ "Q4"
     )
   ) %>% 
+  mutate(year = paste0(year, "-", quarter),
+         year = as.yearqtr(year, format = "%Y-Q%q")) %>% 
   select(-months) -> stressor_clean
 ```
 
@@ -154,25 +159,34 @@ stressor %>%
 ```{r stress_pct, caption = "Most common stressors among bee colonies in the US"}
 stressor_clean %>% 
   filter(state == "United States") %>% 
-  group_by(year, quarter) %>%
-  # mutate(sum_stress_pct = sum(stress_pct, na.rm = TRUE)) %>% 
-  # ungroup() %>% 
-  # group_by(year, sum_stress_pct)
-  # filter(stress_pct == max(stress_pct))
-  mutate(year = paste0(year, "-", quarter),
-         year = as.yearqtr(year, format = "%Y-Q%q")) %>% 
-  ggplot(aes(x = year, y = stress_pct, group = stressor, color = stressor)) +
+  group_by(year) %>%
+  ggplot(aes(x = year, y = stress_pct, group = stressor, color = stressor, label = stressor)) +
   geom_line() +
+  # geom_textpath(size = 4, vjust = 1) +
   scale_color_manual(values = c(
-    '#1b9e77',
-    '#d95f02',
-    '#7570b3',
-    '#e7298a',
-    '#66a61e',
-    '#e6ab02'
+    '#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854','#ffd92f'
   )) +
   theme_minimal()
 ```
+
+## The Number and Percentage of Bee Colonies Changes From 2015 to 2021 in the US
+
+```{r}
+# rename colomn names
+names(colony_clean) <-  gsub(pattern = "^colony_", "", names(colony_clean))
+
+colony_clean %>% 
+  filter(state =="United States") %>% 
+  select(-max, -lost_pct, reno_pct) %>% 
+  pivot_longer(cols = c(3:6), names_to = "type", values_to = "value") %>% 
+  mutate(type = case_when(type == "n" ~ "total number",
+                          TRUE ~ as.character(type))) %>% 
+  ggplot(aes(x = year, y = value, group = type, color = type)) +
+  geom_line()
+  
+
+```
+
 
 
 
